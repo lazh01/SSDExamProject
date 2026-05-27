@@ -38,6 +38,7 @@ jobs:
           config: >
             p/csharp
             p/secrets
+            p/security-audit
             p/owasp-top-ten
         continue-on-error: true
 
