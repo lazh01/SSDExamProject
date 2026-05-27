@@ -13,4 +13,8 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\SecureChat.Shared\SecureChat.Shared.csproj" />
+	</ItemGroup>
+
 </Project>
