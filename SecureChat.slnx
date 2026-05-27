@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SecureChat.Client/SecureChat.Client.csproj" />
+  <Project Path="SecureChat.Server/SecureChat.Server.csproj" />
+  <Project Path="SecureChat.Shared/SecureChat.Shared.csproj" />
+</Solution>
