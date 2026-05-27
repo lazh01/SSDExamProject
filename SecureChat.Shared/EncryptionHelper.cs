@@ -3,43 +3,50 @@ using System.Text;
 
 public static class EncryptionHelper
 {
-    // Generer en delt nøgle – i produktion ville denne udveksles via Diffie-Hellman
-    public static byte[] GenerateKey() => RandomNumberGenerator.GetBytes(32); // 256-bit
+    // Generer RSA nøglepar – kaldes af klienten ved opstart
+    public static RSA GenerateKeyPair() => RSA.Create(2048);
 
-    public static string Encrypt(string plaintext, byte[] key)
+    // Eksportér public key som base64 string – sendes til server
+    public static string ExportPublicKey(RSA rsa)
+        => Convert.ToBase64String(rsa.ExportRSAPublicKey());
+
+    // Importér en public key fra base64 string – bruges til at kryptere
+    public static RSA ImportPublicKey(string base64)
     {
-        byte[] nonce = RandomNumberGenerator.GetBytes(AesGcm.NonceByteSizes.MaxSize); // 12 bytes
-        byte[] tag = new byte[AesGcm.TagByteSizes.MaxSize]; // 16 bytes
-        byte[] plaintextBytes = Encoding.UTF8.GetBytes(plaintext);
-        byte[] ciphertext = new byte[plaintextBytes.Length];
-
-        using var aes = new AesGcm(key, AesGcm.TagByteSizes.MaxSize);
-        aes.Encrypt(nonce, plaintextBytes, ciphertext, tag);
-
-        // Kombiner nonce + tag + ciphertext og returner som base64
-        var result = new byte[nonce.Length + tag.Length + ciphertext.Length];
-        nonce.CopyTo(result, 0);
-        tag.CopyTo(result, nonce.Length);
-        ciphertext.CopyTo(result, nonce.Length + tag.Length);
-
-        return Convert.ToBase64String(result);
+        var rsa = RSA.Create();
+        rsa.ImportRSAPublicKey(Convert.FromBase64String(base64), out _);
+        return rsa;
     }
 
-    public static string Decrypt(string encryptedBase64, byte[] key)
+    // Kryptér besked med modtagerens public key
+    public static string Encrypt(string plaintext, RSA recipientPublicKey)
     {
-        byte[] data = Convert.FromBase64String(encryptedBase64);
+        var data = Encoding.UTF8.GetBytes(plaintext);
+        var encrypted = recipientPublicKey.Encrypt(data, RSAEncryptionPadding.OaepSHA256);
+        return Convert.ToBase64String(encrypted);
+    }
 
-        int nonceSize = AesGcm.NonceByteSizes.MaxSize;
-        int tagSize = AesGcm.TagByteSizes.MaxSize;
+    // Dekryptér besked med egen private key
+    public static string Decrypt(string ciphertext, RSA privateKey)
+    {
+        var data = Convert.FromBase64String(ciphertext);
+        var decrypted = privateKey.Decrypt(data, RSAEncryptionPadding.OaepSHA256);
+        return Encoding.UTF8.GetString(decrypted);
+    }
 
-        byte[] nonce = data[..nonceSize];
-        byte[] tag = data[nonceSize..(nonceSize + tagSize)];
-        byte[] ciphertext = data[(nonceSize + tagSize)..];
-        byte[] plaintext = new byte[ciphertext.Length];
+    // Signér besked med egen private key
+    public static string Sign(string message, RSA privateKey)
+    {
+        var data = Encoding.UTF8.GetBytes(message);
+        var signature = privateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        return Convert.ToBase64String(signature);
+    }
 
-        using var aes = new AesGcm(key, tagSize);
-        aes.Decrypt(nonce, ciphertext, tag, plaintext);
-
-        return Encoding.UTF8.GetString(plaintext);
+    // Verificér signatur med afsenderens public key
+    public static bool Verify(string message, string signature, RSA senderPublicKey)
+    {
+        var data = Encoding.UTF8.GetBytes(message);
+        var sig = Convert.FromBase64String(signature);
+        return senderPublicKey.VerifyData(data, sig, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
     }
 }

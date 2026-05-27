@@ -6,7 +6,7 @@ public static class CertHelper
     public static X509Certificate2 GetOrCreateCertificate(string pfxPath, string password)
     {
         if (File.Exists(pfxPath))
-            return new X509Certificate2(pfxPath, password);
+            return X509CertificateLoader.LoadPkcs12FromFile(pfxPath, password);
 
         Console.WriteLine("Generating self-signed certificate...");
 
@@ -33,6 +33,6 @@ public static class CertHelper
         File.WriteAllBytes(pfxPath, pfxBytes);
         Console.WriteLine($"Certificate saved to {pfxPath}");
 
-        return new X509Certificate2(pfxBytes, password);
+        return X509CertificateLoader.LoadPkcs12(pfxBytes, password);
     }
 }
