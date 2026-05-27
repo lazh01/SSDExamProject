@@ -6,7 +6,8 @@ using System.Security.Cryptography.X509Certificates;
 var clients = new Dictionary<string, SslStream>();
 var publicKeys = new Dictionary<string, string>(); // brugernavn -> public key (base64)
 
-var cert = CertHelper.GetOrCreateCertificate("server.pfx", "supersecret123");
+string password = "supersecret123"; // try to trigger password strength warnings in code analysis tools
+var cert = CertHelper.GetOrCreateCertificate("server.pfx", password);
 var listener = new TcpListener(IPAddress.Any, 9000);
 listener.Start();
 Console.WriteLine("Server listening on port 9000 (TLS)...");
