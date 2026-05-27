@@ -1,0 +1,66 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Gitleaks skal bruge fuld git history
+
+      # ── Secret Scanning ──────────────────────────────────────
+      - name: Secret scanning (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Setup .NET ───────────────────────────────────────────
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # ── SAST ─────────────────────────────────────────────────
+      - name: SAST (Semgrep)
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >
+            p/csharp
+            p/secrets
+            p/owasp-top-ten
+        continue-on-error: true
+
+      # ── SCA ──────────────────────────────────────────────────
+      - name: SCA – scan for vulnerable dependencies
+        run: |
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee vuln-report.txt
+          if grep -q "has the following vulnerable packages" vuln-report.txt; then
+            echo "::error::Vulnerable dependencies found!"
+            cat vuln-report.txt
+            exit 1
+          else
+            echo "No vulnerable dependencies found."
+          fi
+
+      # ── Build ─────────────────────────────────────────────────
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # ── Upload rapport ────────────────────────────────────────
+      - name: Upload vulnerability report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vulnerability-report
+          path: vuln-report.txt
