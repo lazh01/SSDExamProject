@@ -9,6 +9,9 @@ on:
 jobs:
   security:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     
     steps:
       - name: Checkout code
@@ -72,16 +75,22 @@ jobs:
           path: sbom/
 
       # ── Sign release artifacts ────────────────────────────────
-      - name: Sign build artifacts
+      - name: Install cosign
         uses: sigstore/cosign-installer@v3
 
       - name: Sign server
-        run: cosign sign-blob --yes SecureChat.Server/bin/Release/net10.0/SecureChat.Server.dll
+        run: |
+          cosign sign-blob --yes \
+            --bundle SecureChat.Server/bin/Release/net10.0/SecureChat.Server.dll.bundle \
+            SecureChat.Server/bin/Release/net10.0/SecureChat.Server.dll
         env:
           COSIGN_EXPERIMENTAL: "true"
 
       - name: Sign client
-        run: cosign sign-blob --yes SecureChat.Client/bin/Release/net10.0/SecureChat.Client.exe
+        run: |
+          cosign sign-blob --yes \
+            --bundle SecureChat.Client/bin/Release/net10.0/SecureChat.Client.exe.bundle \
+            SecureChat.Client/bin/Release/net10.0/SecureChat.Client.exe
         env:
           COSIGN_EXPERIMENTAL: "true"
 
