@@ -62,7 +62,14 @@ jobs:
       - name: Generate SBOM
         run: |
           dotnet tool install --global CycloneDX
-          dotnet CycloneDX . -o sbom -f json
+          dotnet CycloneDX . --output sbom
+      
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sbom
+          path: sbom/
 
       # ── Sign release artifacts ────────────────────────────────
       - name: Sign build artifacts
