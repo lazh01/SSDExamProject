@@ -89,8 +89,8 @@ jobs:
       - name: Sign client
         run: |
           cosign sign-blob --yes \
-            --bundle SecureChat.Client/bin/Release/net10.0/SecureChat.Client.exe.bundle \
-            SecureChat.Client/bin/Release/net10.0/SecureChat.Client.exe
+            --bundle SecureChat.Client/bin/Release/net10.0/SecureChat.Client.bundle \
+            SecureChat.Client/bin/Release/net10.0/SecureChat.Client
         env:
           COSIGN_EXPERIMENTAL: "true"
 
