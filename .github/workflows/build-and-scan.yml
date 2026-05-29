@@ -65,7 +65,8 @@ jobs:
       - name: Generate SBOM
         run: |
           dotnet tool install --global CycloneDX
-          dotnet CycloneDX . --output sbom
+          dotnet CycloneDX SecureChat.Server/SecureChat.Server.csproj --output sbom
+          dotnet CycloneDX SecureChat.Client/SecureChat.Client.csproj --output sbom
       
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
