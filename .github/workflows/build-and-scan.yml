@@ -94,6 +94,16 @@ jobs:
             SecureChat.Client/bin/Release/net10.0/SecureChat.Client
         env:
           COSIGN_EXPERIMENTAL: "true"
+      
+      - name: Upload signed bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-binaries
+          path: |
+            SecureChat.Server/bin/Release/net10.0/SecureChat.Server.dll
+            SecureChat.Server/bin/Release/net10.0/SecureChat.Server.dll.bundle
+            SecureChat.Client/bin/Release/net10.0/SecureChat.Client
+            SecureChat.Client/bin/Release/net10.0/SecureChat.Client.bundle
 
       # ── Upload rapport ────────────────────────────────────────
       - name: Upload vulnerability report
