@@ -26,6 +26,8 @@ public static class MessageProtocol
             char c = (char)singleByte[0];
             if (c == '\n') break;
             sb.Append(c);
+            if (sb.Length > 64 * 1024) // max 64KB per besked
+                throw new InvalidOperationException("Message too large");
         }
 
         var raw = sb.ToString().Trim();

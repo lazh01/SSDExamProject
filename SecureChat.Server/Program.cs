@@ -6,7 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 var clients = new Dictionary<string, SslStream>();
 var publicKeys = new Dictionary<string, string>(); // brugernavn -> public key (base64)
 
-string password = "ghp_123456789012345678901234567890123456"; // try to trigger password strength warnings in code analysis tools
+string password = "acacacacacacacacacaccacaccaca"; // try to trigger password strength warnings in code analysis tools
 var cert = CertHelper.GetOrCreateCertificate("server.pfx", password);
 var listener = new TcpListener(IPAddress.Any, 9000);
 listener.Start();

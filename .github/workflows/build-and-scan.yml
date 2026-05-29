@@ -58,6 +58,26 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      # ── SBOM ─────────────────────────────────────────────────
+      - name: Generate SBOM
+        run: |
+          dotnet tool install --global CycloneDX
+          dotnet CycloneDX . -o sbom -f json
+
+      # ── Sign release artifacts ────────────────────────────────
+      - name: Sign build artifacts
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign server
+        run: cosign sign-blob --yes SecureChat.Server/bin/Release/net10.0/SecureChat.Server.dll
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+
+      - name: Sign client
+        run: cosign sign-blob --yes SecureChat.Client/bin/Release/net10.0/SecureChat.Client.exe
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+
       # ── Upload rapport ────────────────────────────────────────
       - name: Upload vulnerability report
         uses: actions/upload-artifact@v4
